@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ife Luxe Collective — Webflow Build Workflow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #fff; min-height: 100vh; }
+
+    header { padding: 40px 48px 24px; border-bottom: 1px solid #222; }
+    header h1 { font-size: 1.5rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    header p { font-size: 0.875rem; color: #666; margin-top: 4px; }
+
+    .legend { display: flex; gap: 24px; padding: 20px 48px; border-bottom: 1px solid #222; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #888; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    .workflow { padding: 40px 48px; display: flex; flex-direction: column; gap: 48px; }
+
+    .phase { display: flex; flex-direction: column; gap: 16px; }
+    .phase-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #444; padding-left: 4px; }
+
+    .nodes { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+
+    .node {
+      border-radius: 14px;
+      padding: 16px 20px;
+      min-width: 200px;
+      max-width: 280px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      border: 1px solid transparent;
+    }
+    .node:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .node.active { box-shadow: 0 0 0 2px #fff; }
+    .node.dimmed { opacity: 0.25; }
+
+    .node-icon { font-size: 1.25rem; margin-bottom: 8px; }
+    .node-title { font-size: 0.875rem; font-weight: 700; color: #fff; line-height: 1.3; margin-bottom: 4px; }
+    .node-sub { font-size: 0.75rem; color: rgba(255,255,255,0.55); line-height: 1.4; }
+    .node-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .tag { font-size: 0.65rem; font-weight: 600; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Status colors */
+    .ready { background: #1a2e1a; border-color: #2d5a2d; }
+    .ready .node-icon::after { content: ''; }
+    .needs-content { background: #2e2a1a; border-color: #5a4e2d; }
+    .needs-dev { background: #1a1a2e; border-color: #2d2d5a; }
+    .needs-media { background: #2e1a2a; border-color: #5a2d4e; }
+    .cms { background: #1a2a2e; border-color: #2d4e5a; }
+
+    .tag-ready { background: #2d5a2d; color: #7dba7d; }
+    .tag-content { background: #5a4e2d; color: #baa97d; }
+    .tag-dev { background: #2d2d5a; color: #7d7dba; }
+    .tag-media { background: #5a2d4e; color: #ba7da9; }
+    .tag-cms { background: #2d4e5a; color: #7da9ba; }
+
+    /* Tooltip / detail panel */
+    #detail-panel {
+      position: fixed;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 320px;
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 24px;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    }
+    #detail-panel.visible { display: block; }
+    #detail-close { position: absolute; top: 16px; right: 16px; background: #222; border: none; color: #888; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    #detail-close:hover { color: #fff; background: #333; }
+    #detail-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    #detail-status { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
+    #detail-body { font-size: 0.8rem; color: #888; line-height: 1.6; }
+    #detail-body strong { color: #ccc; }
+    #detail-body ul { padding-left: 16px; margin-top: 8px; }
+    #detail-body li { margin-bottom: 4px; }
+
+    .divider { width: 100%; height: 1px; background: #1a1a1a; }
+
+    .progress-bar { padding: 20px 48px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #222; }
+    .progress-label { font-size: 0.75rem; color: #555; white-space: nowrap; }
+    .bar-track { flex: 1; height: 4px; background: #222; border-radius: 2px; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, #2d5a2d, #7dba7d); border-radius: 2px; width: 15%; transition: width 0.3s; }
+    .progress-pct { font-size: 0.75rem; color: #555; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Ife Luxe Collective — Webflow Build Workflow</h1>
+  <p>Click any node to see what's needed. Hand this to your IT person.</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#7dba7d"></div> Copy ready</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#baa97d"></div> Needs content from John</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7d7dba"></div> Dev / Webflow work</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ba7da9"></div> Needs media (photos/video)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7da9ba"></div> CMS setup</div>
+</div>
+
+<div class="progress-bar">
+  <span class="progress-label">Overall progress</span>
+  <div class="bar-track"><div class="bar-fill" id="progress-fill"></div></div>
+  <span class="progress-pct" id="progress-pct">Copy mapped — ready to build</span>
+</div>
+
+<div class="workflow">
+
+  <!-- PHASE 1: SETUP -->
+  <div class="phase">
+    <div class="phase-label">Phase 1 — Brand Setup</div>
+    <div class="nodes">
+      <div class="node needs-dev" onclick="showDetail(this)" data-title="Brand Colors" data-status="Dev" data-body="<strong>Replace template colors with:</strong><ul><li>Cream: #FFEFE6</li><li>Dusty Pink: #DB9AA1</li><li>Black: #000000</li><li>White: #FFFFFF</li></ul>Set in Webflow Designer → Style Guide panel.">
+        <div class="node-icon">🎨</div>
+        <div class="node-title">Brand Colors</div>
+        <div class="node-sub">Swap template red/black for ILC palette</div>
+        <div class="node-tags"><span class="tag tag-dev">Dev</span></div>
+      </div>
+      <div class="node needs-dev" onclick="showDetail(this)" data-title="Typography" data-status="Dev" data-body="<strong>Fonts to load:</strong><ul><li>Fraunces — headings, display, buttons</li><li>Hanken Grotesk — body, captions, UI</li></ul>Load via Google Fonts in Webflow project settings. Replace all template font assignments.">
+        <div class="node-icon">🔤</div>
+        <div class="node-title">Typography</div>
+        <div class="node-sub">Fraunces + Hanken Grotesk</div>
+        <div class="node-tags"><span class="tag tag-dev">Dev</span></div>
+      </div>
+      <div class="node needs-dev" onclick="showDetail(this)" data-title="Logo" data-status="Dev" data-body="<strong>Logo files at:</strong> /Users/jbuycks/BRAND/Ife Luxe Collection - Logo/Primary Logo/SVG/<ul><li>Dusty Pink logo → on Cream backgrounds</li><li>Cream logo → on Dusty Pink backgrounds</li><li>White logo → on photo backgrounds</li></ul>Replace BOLDWAY logo in nav and footer.">
+        <div class="node-icon">✦</div>
+        <div class="node-title">Logo</div>
+        <div class="node-sub">Swap BOLDWAY logo for ILC wordmark</div>
+        <div class="node-tags"><span class="tag tag-dev">Dev</span></div>
+      </div>
+      <div class="node needs-dev" onclick="showDetail(this)" data-title="Navigation" data-status="Dev" data-body="<strong>Nav links:</strong><ul><li>Home</li><li>About</li><li>Services</li><li>Enhancements</li><li>Blog</li><li>Contact</li></ul><strong>CTA button:</strong> Check My Date<br><br>Replace GET TEMPLATE button.">
+        <div class="node-icon">🔗</div>
+        <div class="node-title">Navigation</div>
+        <div class="node-sub">Replace template nav with ILC links</div>
+        <div class="node-tags"><span class="tag tag-dev">Dev</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: HOME PAGE -->
+  <div class="phase">
+    <div class="phase-label">Phase 2 — Home Page Sections</div>
+    <div class="nodes">
+
+      <div class="node needs-dev" onclick="showDetail(this)" data-title="Preloader" data-status="Dev + Copy Ready" data-body="<strong>3 animated words fly in on load.</strong><br><br>Options (pick one):<ul><li>Joy. Designed. Inevitable.</li><li>Feel. The. Night.</li><li>Love. Energy. Joy.</li><li>Design. Your. Joy.</li></ul>Keep GSAP animation intact, replace text only.">
+        <div class="node-icon">⚡</div>
+        <div class="node-title">Preloader</div>
+        <div class="node-sub">3 animated words on page load</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span><span class="tag tag-dev">Dev</span></div>
+      </div>
+
+      <div class="node needs-media" onclick="showDetail(this)" data-title="Hero Section" data-status="Needs Video" data-body="<strong>Copy ready:</strong><ul><li>Headline: We Don't Gamble on Joy. We Design It.</li><li>Sub: Premium wedding entertainment and experience design for couples who want a night that feels inevitable.</li><li>CTA: Design Your Joy / Check My Date</li></ul><strong>Needs:</strong> Replace stock video with real wedding/event footage.">
+        <div class="node-icon">🎬</div>
+        <div class="node-title">Hero</div>
+        <div class="node-sub">Video background + headline + CTA</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span><span class="tag tag-media">Needs Video</span></div>
+      </div>
+
+      <div class="node needs-content" onclick="showDetail(this)" data-title="Trusted Collaborators" data-status="Needs Logos" data-body="<strong>Section label:</strong> Trusted Collaborators<br><br>Scrolling marquee strip of venue and planner logos.<br><br><strong>Needs:</strong> Collect logos from Cincinnati Club, The Palomar, Ault Park, The Transept, The Monastery, Green Acres, Mercantile Immersive, Madison Event Center + any planner partners.">
+        <div class="node-icon">🤝</div>
+        <div class="node-title">Trusted Collaborators</div>
+        <div class="node-sub">Venue + planner logo marquee</div>
+        <div class="node-tags"><span class="tag tag-content">Needs Logos</span></div>
+      </div>
+
+      <div class="node needs-media" onclick="showDetail(this)" data-title="About Section" data-status="Copy Ready + Needs Photo" data-body="<strong>Headline:</strong> We Design the Conditions Where Joy Feels Inevitable.<br><strong>Body:</strong> Ife Luxe Collective is a Cincinnati-based entertainment and experience design company...<br><br><strong>Stats:</strong> 500+ Nights, 10+ Years, 5★ Rating, 4 Markets<br><br><strong>Needs:</strong> Real event photos to replace stock images.">
+        <div class="node-icon">👥</div>
+        <div class="node-title">About</div>
+        <div class="node-sub">Brand story + stats</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span><span class="tag tag-media">Needs Photos</span></div>
+      </div>
+
+      <div class="node ready" onclick="showDetail(this)" data-title="Services List" data-status="Copy Ready" data-body="<strong>Headline:</strong> NIGHTS WE DESIGN<br><strong>Body:</strong> We build bespoke entertainment for weddings and celebrations...<br><br><strong>4 service items (each links to own page):</strong><ul><li>Wedding DJ Entertainment</li><li>Live Music Fusion</li><li>Corporate & Private Events</li><li>Galas, Nonprofit, & More</li></ul>">
+        <div class="node-icon">🎵</div>
+        <div class="node-title">Services List</div>
+        <div class="node-sub">4 services linking to individual pages</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+
+      <div class="node ready" onclick="showDetail(this)" data-title="How It Works" data-status="Copy Ready" data-body="<strong>Headline:</strong> Connect. Design. Prepare. Celebrate.<br><strong>Kicker:</strong> ( HOW IT WORKS )<br><br><strong>Circle steps:</strong><ul><li>Connect — First conversation.</li><li>Design — Map the full experience.</li><li>Prepare — Final details locked.</li><li>Celebrate — We show up and deliver.</li></ul><strong>Center image:</strong> Swap stock photo for real event photo.">
+        <div class="node-icon">⭕</div>
+        <div class="node-title">How It Works</div>
+        <div class="node-sub">Animated circle: Connect. Design. Prepare. Celebrate.</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span><span class="tag tag-media">Needs Photo</span></div>
+      </div>
+
+      <div class="node ready" onclick="showDetail(this)" data-title="Why Choose Us" data-status="Copy Ready" data-body="<strong>3 cards + brand icons:</strong><ul><li>A Decade in the Room → Award medal icon</li><li>The Floor Always Fills → DJ mixer icon</li><li>The Planning Process Matters → Q&A bubbles icon</li></ul><strong>Icons at:</strong> /Users/jbuycks/BRAND/Ife Luxe Collection - Icons/">
+        <div class="node-icon">🏆</div>
+        <div class="node-title">Why Choose Us</div>
+        <div class="node-sub">3 cards with brand icons</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+
+      <div class="node needs-content" onclick="showDetail(this)" data-title="Testimonials" data-status="Needs Real Reviews" data-body="<strong>Headline:</strong> WHAT COUPLES ARE SAYING<br><strong>Structure:</strong> 4 slots — photo, name, event type, 5 stars, quote.<br><br><strong>Needs:</strong> Pull 4 real reviews from Google / The Knot / WeddingWire and replace placeholder content.">
+        <div class="node-icon">⭐</div>
+        <div class="node-title">Testimonials</div>
+        <div class="node-sub">4 real client reviews needed</div>
+        <div class="node-tags"><span class="tag tag-content">Needs Reviews</span></div>
+      </div>
+
+      <div class="node needs-dev" onclick="showDetail(this)" data-title="Investment" data-status="Copy Ready + Animation" data-body="<strong>Headline:</strong> DESIGNED FOR YOUR NIGHT.<br><strong>Pull quote:</strong> 'We do not gamble on joy. We design it.'<br><strong>Range:</strong> $2,800 — $9,000+ (animated counter)<br><strong>Body:</strong> Every investment is built around the event, your DJ, and the experience you're imagining.<br><strong>CTA:</strong> Start the Conversation<br><br><strong>Animation:</strong> SplitText headline reveal + number counter (GSAP). See /Users/jbuycks/investment-preview.html for reference.">
+        <div class="node-icon">💰</div>
+        <div class="node-title">Investment</div>
+        <div class="node-sub">Animated counter + Dusty Pink background</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span><span class="tag tag-dev">Animation</span></div>
+      </div>
+
+      <div class="node cms" onclick="showDetail(this)" data-title="Blog Preview" data-status="CMS + Import" data-body="<strong>Headline:</strong> REAL TALK.<br><strong>Button:</strong> MORE ARTICLES<br><br><strong>CMS Collection:</strong> Each post needs title, cover image, body, date, category tag.<br><br><strong>Import existing posts from:</strong> ifeluxecol.com<br><br>IT person sets up CMS Collection, imports posts, connects to blog preview section.">
+        <div class="node-icon">✍️</div>
+        <div class="node-title">Blog Preview</div>
+        <div class="node-sub">CMS — import from ifeluxecol.com</div>
+        <div class="node-tags"><span class="tag tag-cms">CMS</span><span class="tag tag-content">Import Posts</span></div>
+      </div>
+
+      <div class="node ready" onclick="showDetail(this)" data-title="FAQ" data-status="Copy Ready" data-body="<strong>Headline:</strong> HELP & ANSWERS.<br><br><strong>Quick Answers (3 columns):</strong><ul><li>Col 1: Booking + Travel</li><li>Col 2: Music + Venues</li><li>Col 3: Getting Started</li></ul><strong>4 Accordions:</strong><ul><li>How far in advance? → 9-16 months</li><li>Do you travel? → Ohio, KY, IN</li><li>Planning process? → Vibo + Design Session</li><li>Do you know our venue? → Yes, list of Cincinnati venues</li></ul>">
+        <div class="node-icon">❓</div>
+        <div class="node-title">FAQ</div>
+        <div class="node-sub">Quick answers + 4 accordions</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+
+      <div class="node ready" onclick="showDetail(this)" data-title="CTA Section" data-status="Copy Ready" data-body="<strong>Kicker:</strong> ( YOUR DATE IS WAITING )<br><strong>Headline:</strong> LET'S DESIGN YOUR NIGHT.<br><strong>Body:</strong> Tell us what you're imagining. We'll take it from there.<br><strong>Button:</strong> Start the Conversation<br><br>Replace stock photos in scroll strip with real event photos.">
+        <div class="node-icon">🚀</div>
+        <div class="node-title">CTA Section</div>
+        <div class="node-sub">Final call to action before footer</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span><span class="tag tag-media">Needs Photos</span></div>
+      </div>
+
+      <div class="node ready" onclick="showDetail(this)" data-title="Footer" data-status="Copy Ready" data-body="<strong>Name:</strong> IFE LUXE COLLECTIVE.<br><strong>Tagline:</strong> DESIGNING NIGHTS WORTH REMEMBERING.<br><br><strong>Main Page:</strong> Home, About, Services, Enhancements, Blog, Contact<br><strong>Others:</strong> Service Details, Blog Details, Team<br><strong>Utilities:</strong> FAQ, Investment, Book a Consultation, 404<br><strong>Socials:</strong> Instagram @ifeluxecol<br><br><strong>Email:</strong> info@ifeluxecol.com<br><strong>Copyright:</strong> © 2026 Ife Luxe Collective | Powered by Webflow">
+        <div class="node-icon">🔻</div>
+        <div class="node-title">Footer</div>
+        <div class="node-sub">4-column nav + email + socials</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE 3: SERVICE PAGES -->
+  <div class="phase">
+    <div class="phase-label">Phase 3 — Service Pages (CMS)</div>
+    <div class="nodes">
+      <div class="node ready" onclick="showDetail(this)" data-title="Wedding DJ Entertainment" data-status="Copy Ready" data-body="<strong>Slug:</strong> /services/wedding-dj-entertainment<br><strong>Headline:</strong> The night doesn't happen by accident.<br><strong>Subhead:</strong> We build the energy from the ground up.<br><strong>Includes:</strong> DJ performance, MC work, custom selections, crowd reading, transitions, timeline coordination.<br><strong>SEO:</strong> Wedding DJ Entertainment | Ife Luxe Collective">
+        <div class="node-icon">🎧</div>
+        <div class="node-title">Wedding DJ Entertainment</div>
+        <div class="node-sub">/services/wedding-dj-entertainment</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+      <div class="node ready" onclick="showDetail(this)" data-title="Live Music Fusion" data-status="Copy Ready" data-body="<strong>Slug:</strong> /services/live-music-fusion<br><strong>Headline:</strong> Something they've never quite heard before.<br><strong>Subhead:</strong> Live musicians woven into the DJ set.<br><strong>SEO:</strong> Tired of choosing between a DJ and a live band? Ife Luxe Collective brings both.">
+        <div class="node-icon">🎷</div>
+        <div class="node-title">Live Music Fusion</div>
+        <div class="node-sub">/services/live-music-fusion</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+      <div class="node ready" onclick="showDetail(this)" data-title="Corporate & Private Events" data-status="Copy Ready" data-body="<strong>Slug:</strong> /services/corporate-private-events<br><strong>Headline:</strong> The room should feel different when we're in it.<br><strong>Includes:</strong> DJ, AV setup, uplighting, MC on request, effect packages.<br><strong>SEO:</strong> Corporate AV and entertainment for company events and private parties in Cincinnati.">
+        <div class="node-icon">🏢</div>
+        <div class="node-title">Corporate & Private Events</div>
+        <div class="node-sub">/services/corporate-private-events</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+      <div class="node ready" onclick="showDetail(this)" data-title="Galas, Nonprofit, & More" data-status="Copy Ready" data-body="<strong>Slug:</strong> /services/galas-nonprofit-events<br><strong>Headline:</strong> Every cause deserves a room that feels alive.<br><strong>Includes:</strong> DJ, MC, AV, atmosphere design, timeline coordination, effect packages.<br><strong>SEO:</strong> Entertainment design for galas, nonprofit fundraisers, and specialty events in Cincinnati.">
+        <div class="node-icon">🎗️</div>
+        <div class="node-title">Galas, Nonprofit, & More</div>
+        <div class="node-sub">/services/galas-nonprofit-events</div>
+        <div class="node-tags"><span class="tag tag-ready">Copy Ready</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4: ADDITIONAL PAGES -->
+  <div class="phase">
+    <div class="phase-label">Phase 4 — Additional Pages</div>
+    <div class="nodes">
+      <div class="node cms" onclick="showDetail(this)" data-title="Team Page" data-status="CMS + Content Needed" data-body="<strong>Slug:</strong> /team<br><strong>Headline:</strong> THE COLLECTIVE.<br><strong>Structure:</strong> CMS Collection — 5 profiles (4 DJs + 1 admin)<br><br><strong>Each profile needs:</strong><ul><li>Photo</li><li>Name + Role</li><li>Bio (in John's voice)</li><li>Performance video (YouTube/Vimeo)</li><li>Notable events (2 categories)</li><li>Social handles</li></ul>Modeled after sceeventgroup.com/dj-team/">
+        <div class="node-icon">👤</div>
+        <div class="node-title">Team Page</div>
+        <div class="node-sub">/team — 5 profiles, CMS</div>
+        <div class="node-tags"><span class="tag tag-cms">CMS</span><span class="tag tag-content">Needs Content</span></div>
+      </div>
+      <div class="node cms" onclick="showDetail(this)" data-title="Blog" data-status="CMS + Import" data-body="<strong>CMS Collection:</strong> Blog posts<br><strong>Import from:</strong> ifeluxecol.com<br><br><strong>Each post needs:</strong><ul><li>Title</li><li>Cover image</li><li>Body copy</li><li>Date</li><li>Category tag</li></ul>IT person sets up CMS, imports all existing posts.">
+        <div class="node-icon">📝</div>
+        <div class="node-title">Blog</div>
+        <div class="node-sub">Import from ifeluxecol.com</div>
+        <div class="node-tags"><span class="tag tag-cms">CMS</span><span class="tag tag-content">Import Posts</span></div>
+      </div>
+      <div class="node needs-content" onclick="showDetail(this)" data-title="Contact Page" data-status="Needs Setup" data-body="<strong>Slug:</strong> /contact<br><br><strong>Include:</strong><ul><li>Contact form (name, email, event date, event type, message)</li><li>Email: info@ifeluxecol.com</li><li>Calendly embed for consultation booking</li><li>Instagram: @ifeluxecol</li></ul>">
+        <div class="node-icon">📬</div>
+        <div class="node-title">Contact Page</div>
+        <div class="node-sub">/contact — form + Calendly</div>
+        <div class="node-tags"><span class="tag tag-content">Needs Setup</span></div>
+      </div>
+      <div class="node needs-content" onclick="showDetail(this)" data-title="Enhancements Page" data-status="To Be Mapped" data-body="<strong>Slug:</strong> /enhancements<br><br>Lists all add-on services and effects:<ul><li>Cold Sparks</li><li>Dancing on Clouds</li><li>CO2/Club Cannon</li><li>Uplighting</li><li>LED Party Sticks</li><li>60' Media Display</li><li>Photobooth (Salsa-style): $650</li><li>Hybrid DJ + Live Musician: from $750</li></ul><strong>Not yet mapped — needs copy session.">
+        <div class="node-icon">✨</div>
+        <div class="node-title">Enhancements Page</div>
+        <div class="node-sub">/enhancements — to be mapped</div>
+        <div class="node-tags"><span class="tag tag-content">To Be Mapped</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: MEDIA -->
+  <div class="phase">
+    <div class="phase-label">Phase 5 — Media Swaps (Do Last)</div>
+    <div class="nodes">
+      <div class="node needs-media" onclick="showDetail(this)" data-title="Hero Video" data-status="Needs Real Footage" data-body="Replace 3 template video backgrounds with real wedding/event footage.<br><br><strong>Ideal shots:</strong> Dance floor energy, couple first dance, sparkler exit, crowd moments, golden hour details.">
+        <div class="node-icon">🎥</div>
+        <div class="node-title">Hero Video</div>
+        <div class="node-sub">Replace stock video with real footage</div>
+        <div class="node-tags"><span class="tag tag-media">Needs Video</span></div>
+      </div>
+      <div class="node needs-media" onclick="showDetail(this)" data-title="Event Photography" data-status="Needs Real Photos" data-body="Replace all stock photos throughout the site:<ul><li>About section photos</li><li>How It Works center image</li><li>CTA scroll strip</li><li>Service page hero images</li><li>Team profile photos</li></ul>">
+        <div class="node-icon">📸</div>
+        <div class="node-title">Event Photography</div>
+        <div class="node-sub">Swap stock photos across all sections</div>
+        <div class="node-tags"><span class="tag tag-media">Needs Photos</span></div>
+      </div>
+      <div class="node needs-content" onclick="showDetail(this)" data-title="Venue Logos" data-status="Needs Collection" data-body="Collect PNG/SVG logos for Trusted Collaborators marquee strip:<ul><li>Cincinnati Club</li><li>The Palomar</li><li>Ault Park</li><li>The Transept</li><li>The Monastery</li><li>Green Acres</li><li>Mercantile Immersive</li><li>The Madison Event Center</li><li>+ planner partner logos</li></ul>">
+        <div class="node-icon">🏛️</div>
+        <div class="node-title">Venue Logos</div>
+        <div class="node-sub">Collect for Trusted Collaborators strip</div>
+        <div class="node-tags"><span class="tag tag-content">Needs Collection</span></div>
+      </div>
+      <div class="node needs-content" onclick="showDetail(this)" data-title="Real Reviews" data-status="Needs Pull" data-body="Pull 4 real client reviews for Testimonials section.<br><br><strong>Sources:</strong><ul><li>Google Reviews</li><li>The Knot</li><li>WeddingWire</li></ul>Each review needs: client name, event type, star rating, quote.">
+        <div class="node-icon">💬</div>
+        <div class="node-title">Real Reviews</div>
+        <div class="node-sub">Pull 4 from Google / The Knot / WeddingWire</div>
+        <div class="node-tags"><span class="tag tag-content">Needs Pull</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail Panel -->
+<div id="detail-panel">
+  <button id="detail-close" onclick="closeDetail()">×</button>
+  <div id="detail-title"></div>
+  <div id="detail-status"></div>
+  <div id="detail-body"></div>
+</div>
+
+<script>
+  let activeNode = null;
+
+  function showDetail(el) {
+    const panel = document.getElementById('detail-panel');
+    const allNodes = document.querySelectorAll('.node');
+
+    if (activeNode === el) {
+      closeDetail();
+      return;
+    }
+
+    activeNode = el;
+    allNodes.forEach(n => {
+      n.classList.remove('active', 'dimmed');
+      n.classList.add('dimmed');
+    });
+    el.classList.remove('dimmed');
+    el.classList.add('active');
+
+    document.getElementById('detail-title').textContent = el.dataset.title;
+    document.getElementById('detail-status').textContent = el.dataset.status;
+    document.getElementById('detail-status').style.color = getStatusColor(el.dataset.status);
+    document.getElementById('detail-body').innerHTML = el.dataset.body;
+
+    panel.classList.add('visible');
+  }
+
+  function closeDetail() {
+    activeNode = null;
+    document.getElementById('detail-panel').classList.remove('visible');
+    document.querySelectorAll('.node').forEach(n => {
+      n.classList.remove('active', 'dimmed');
+    });
+  }
+
+  function getStatusColor(status) {
+    if (status.includes('Copy Ready') || status === 'Copy Ready') return '#7dba7d';
+    if (status.includes('Dev')) return '#7d7dba';
+    if (status.includes('CMS')) return '#7da9ba';
+    if (status.includes('Media') || status.includes('Video') || status.includes('Photo')) return '#ba7da9';
+    return '#baa97d';
+  }
+
+  document.addEventListener('click', function(e) {
+    const panel = document.getElementById('detail-panel');
+    if (!e.target.closest('.node') && !e.target.closest('#detail-panel')) {
+      closeDetail();
+    }
+  });
+</script>
+</body>
+</html>

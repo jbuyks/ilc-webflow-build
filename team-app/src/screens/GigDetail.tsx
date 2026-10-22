@@ -45,7 +45,11 @@ export function GigDetail() {
       <section className="card">
         <h2 className="eyebrow">What they booked</h2>
         <p style={{ fontSize: 14, lineHeight: 1.5 }}>{gig.booked.map((b) => <b key={b} style={{ display: 'block' }}>{b}</b>)}</p>
-        <span className={`chip ${gig.paymentStatus === 'paid' ? 'ok' : 'warn'}`} style={{ alignSelf: 'flex-start' }}>{paymentLabel(gig)}</span>
+        {gig.billing && (
+          <span className={`chip ${gig.billing.paymentStatus === 'paid' ? 'ok' : 'warn'}`} style={{ alignSelf: 'flex-start' }}>
+            {paymentLabel(gig.billing)} · {money(gig.billing.clientTotalCents)}
+          </span>
+        )}
       </section>
 
       <section className="card dark">

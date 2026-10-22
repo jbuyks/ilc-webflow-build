@@ -4,8 +4,8 @@ import type { Gig } from './types';
 
 const base: Gig = {
   id: 'x', couple: 'A & B', type: 'Wedding', date: '2026-10-31', start: '5:00 pm', end: '10:00 pm',
-  venue: 'Hall', djId: 'dj1', booked: ['Luxe Experience'], clientTotalCents: 300000, balanceDueCents: 0,
-  paymentStatus: 'paid', djPayCents: null,
+  venue: 'Hall', djId: 'dj1', booked: ['Luxe Experience'], djPayCents: null,
+  billing: { clientTotalCents: 300000, balanceDueCents: 0, paymentStatus: 'paid' },
   vibo: { progress: 0.9, status: 'active', questionsAnswered: 90, questionsTotal: 100, lastUpdated: '2026-10-20T00:00:00Z', openSections: [], timeline: [] },
 };
 const today = '2026-10-22';
@@ -51,7 +51,11 @@ describe('flagsFor', () => {
 
   it('flags a pending Vibo invite and a balance due', () => {
     const vibo = { ...base.vibo!, status: 'pending' as const };
-    expect(labels({ vibo, balanceDueCents: 50000, paymentStatus: 'partial' })).toEqual(['urgent:Balance due', 'warn:Vibo invite pending']);
+    expect(labels({ vibo, billing: { clientTotalCents: 300000, balanceDueCents: 50000, paymentStatus: 'partial' } })).toEqual(['urgent:Balance due', 'warn:Vibo invite pending']);
+  });
+
+  it('never flags money on a gig without billing (a DJ\'s view)', () => {
+    expect(labels({ billing: undefined })).toEqual([]);
   });
 
   it('ignores past gigs', () => {

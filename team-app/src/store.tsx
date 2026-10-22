@@ -62,6 +62,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const me = team.find((m) => m.id === meId) ?? null;
+  // DJs never get what the client pays. The live backend must strip this server-side too.
+  const visibleGigs = useMemo(
+    () => (me?.role === 'owner' ? gigs : gigs.map(({ billing: _billing, ...g }) => g)),
+    [gigs, me],
+  );
 
   const signIn = useCallback((id: string) => {
     setMeId(id);
@@ -97,10 +102,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppState>(
     () => ({
-      loading, error, sourceLabel: source.label, today: isoToday(), team, gigs, timeOff, me,
+      loading, error, sourceLabel: source.label, today: isoToday(), team, gigs: visibleGigs, timeOff, me,
       signIn, signOut, requestTimeOff, decideTimeOff, checklist, toggleStep,
     }),
-    [loading, error, team, gigs, timeOff, me, signIn, signOut, requestTimeOff, decideTimeOff, checklist, toggleStep],
+    [loading, error, team, visibleGigs, timeOff, me, signIn, signOut, requestTimeOff, decideTimeOff, checklist, toggleStep],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

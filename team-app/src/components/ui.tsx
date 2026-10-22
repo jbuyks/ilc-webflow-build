@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import type { Gig } from '../data';
+import type { Billing, Gig } from '../data';
 import { flagsFor, type Flag } from '../data/flags';
 import { useApp } from '../store';
 
@@ -75,14 +75,14 @@ export function StatusChips({ gig }: { gig: Gig }) {
       {v && !viboFlagged && (
         <span className="chip ok">Vibo {Math.round(v.progress * 100)}%{v.status === 'locked' ? ' · locked' : ''}</span>
       )}
-      <span className={`chip ${gig.paymentStatus === 'paid' ? 'ok' : 'warn'}`}>{paymentLabel(gig)}</span>
+      {gig.billing && <span className={`chip ${gig.billing.paymentStatus === 'paid' ? 'ok' : 'warn'}`}>{paymentLabel(gig.billing)}</span>}
       <FlagChips flags={flags} />
     </div>
   );
 }
 
-export function paymentLabel(gig: Gig): string {
-  return { paid: 'Paid in full', partial: 'Partly paid', overdue: 'Payment overdue', unpaid: 'Unpaid' }[gig.paymentStatus];
+export function paymentLabel(billing: Billing): string {
+  return { paid: 'Paid in full', partial: 'Partly paid', overdue: 'Payment overdue', unpaid: 'Unpaid' }[billing.paymentStatus];
 }
 
 export function GigRow({ gig, sub }: { gig: Gig; sub?: string }) {

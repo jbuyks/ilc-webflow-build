@@ -14,8 +14,8 @@ export function Owner() {
     return d >= 0 && d <= 30;
   });
   const name = (id: string | null) => team.find((m) => m.id === id)?.name ?? 'Unassigned';
-  const collected = window30.reduce((s, g) => s + g.clientTotalCents - g.balanceDueCents, 0);
-  const due = window30.reduce((s, g) => s + g.balanceDueCents, 0);
+  const collected = window30.reduce((s, g) => s + (g.billing ? g.billing.clientTotalCents - g.billing.balanceDueCents : 0), 0);
+  const due = window30.reduce((s, g) => s + (g.billing?.balanceDueCents ?? 0), 0);
   const behind = window30.filter((g) => g.vibo && g.vibo.progress < 0.4).length;
   const issues = window30
     .flatMap((g) => flagsFor(g, today).map((f) => ({ gig: g, flag: f })))
@@ -109,7 +109,7 @@ export function Owner() {
                   <td>{g.venue}</td>
                   <td><span className={`chip ${g.djId ? 'neutral' : 'warn'}`}>{name(g.djId)}</span></td>
                   <td>{g.booked.join(', ')}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{money(g.clientTotalCents)}<br /><span className="sub">{paymentLabel(g)}</span></td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{g.billing ? <>{money(g.billing.clientTotalCents)}<br /><span className="sub">{paymentLabel(g.billing)}</span></> : '—'}</td>
                   <td>{g.vibo ? <ViboBar progress={g.vibo.progress} /> : <span className="sub">Not in Vibo</span>}</td>
                 </tr>
               ))}

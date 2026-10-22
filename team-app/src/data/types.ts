@@ -12,6 +12,12 @@ export interface TeamMember {
 
 export type PaymentStatus = 'paid' | 'partial' | 'overdue' | 'unpaid';
 
+export interface Billing {
+  clientTotalCents: number;
+  balanceDueCents: number;
+  paymentStatus: PaymentStatus;
+}
+
 /** Planning progress, read from Vibo. */
 export interface ViboStatus {
   /** 0 to 1 */
@@ -46,9 +52,11 @@ export interface Gig {
   djId: string | null;
   /** Packages and enhancements booked, from the HoneyBook line items. */
   booked: string[];
-  clientTotalCents: number;
-  balanceDueCents: number;
-  paymentStatus: PaymentStatus;
+  /**
+   * What the client pays. Owner-only: the app removes it for DJs, and the live
+   * backend must never send it to a DJ's device.
+   */
+  billing?: Billing;
   vibo: ViboStatus | null;
   /** What the DJ is paid for this gig, in cents. Null until pay rules are set. */
   djPayCents: number | null;

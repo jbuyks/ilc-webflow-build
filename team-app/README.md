@@ -23,7 +23,7 @@ banner at the top says so.
 |---|---|
 | Home | Next gig, warnings, this week, links to tools and things to send couples |
 | Gigs | Upcoming gigs with Vibo %, payment and warning chips; a "Needs attention" filter |
-| Gig detail | Times, venue, couple, what they booked, the DJ's pay, Vibo progress and open sections, prep checklist, "Text them" with a drafted message |
+| Gig detail | Times, venue, couple, what they booked (no client prices), the DJ’s pay, Vibo progress and open sections, prep checklist, "Text them" with a drafted message |
 | Pay | Pay per gig (blank until pay rules are set) |
 | Planning | Vibo status for the next 45 days and the DJ's planning call link |
 | Time off | Request dates off; see request status |
@@ -69,6 +69,7 @@ How the two systems join up:
       logins (e.g. Supabase Auth or Clerk) before any real data goes in.
 - [ ] **API access.** Confirm API access with HoneyBook and with Vibo.
 - [ ] **Backend.** Build the sync backend and a `liveSource` that implements `DataSource`.
+- [ ] **Keep client money owner-only.** The backend must leave `billing` out of anything it sends a DJ. The app already hides it, but the browser shouldn't receive it at all.
 - [ ] **Shared storage.** Store time-off requests and checklist ticks there. They're
       kept in the browser for now.
 - [ ] **Pay.** Fill in pay rules and compute `djPayCents`.

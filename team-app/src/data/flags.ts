@@ -41,8 +41,8 @@ export function flagsFor(gig: Gig, today: string): Flag[] {
   if (!gig.djId) {
     add('warn', 'No DJ assigned', 'The HoneyBook booking has no DJ line item.');
   }
-  if (gig.balanceDueCents > 0 && days <= 14) {
-    add('urgent', 'Balance due', `${money(gig.balanceDueCents)} still owed.`);
+  if (gig.billing && gig.billing.balanceDueCents > 0 && days <= 14) {
+    add('urgent', 'Balance due', `${money(gig.billing.balanceDueCents)} still owed.`);
   }
 
   const v = gig.vibo;

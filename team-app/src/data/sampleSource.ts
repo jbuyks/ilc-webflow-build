@@ -32,25 +32,25 @@ function buildGigs(): Gig[] {
     {
       id: 'g1', couple: 'Maya & Theo', type: 'Wedding', date: dayOffset(1), start: null, end: null,
       venue: 'Orchard House', djId: 'dj-ari', booked: ['Luxe Experience'],
-      clientTotalCents: 300000, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 300000, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: { progress: 1, status: 'locked', questionsAnswered: 54, questionsTotal: 54, lastUpdated: daysAgoIso(2), openSections: [], timeline: sampleTimeline },
     },
     {
       id: 'g2', couple: 'Priya & Sam', type: 'Wedding', date: dayOffset(1), start: '4:30 pm', end: '10:30 pm',
       venue: 'Willow Creek Barn', address: 'Miamisburg, OH', couplePhone: '(555) 010-0202', djId: 'dj-sol', booked: ['Ceremony Audio'],
-      clientTotalCents: 239500, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 239500, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: { progress: 0.3, status: 'active', questionsAnswered: 25, questionsTotal: 82, lastUpdated: daysAgoIso(24), openSections: ['The Details', 'Wedding party intros', 'Parent dances', 'Ceremony details'], timeline: sampleTimeline },
     },
     {
       id: 'g3', couple: 'Lena & Marcus', type: 'Wedding', date: dayOffset(2), start: '2:00 pm', end: null,
       venue: 'The Lyceum', djId: 'dj-ari', booked: ['Celebration Experience'],
-      clientTotalCents: 240000, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 240000, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: { progress: 0.91, status: 'locked', questionsAnswered: 77, questionsTotal: 85, lastUpdated: daysAgoIso(7), openSections: ['Wedding party intros', 'Ceremony details'], timeline: sampleTimeline },
     },
     {
       id: 'g4', couple: 'Grace & Owen', type: 'Wedding', date: dayOffset(9), start: '5:00 pm', end: '10:00 pm',
       venue: 'Riverside Hall', address: 'Louisville, KY', couplePhone: '(555) 010-0204', djId: 'dj-ari', booked: ['Photobooth', 'Venue Uplighting'],
-      clientTotalCents: 544000, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 544000, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: {
         progress: 0.32, status: 'active', questionsAnswered: 26, questionsTotal: 81, lastUpdated: daysAgoIso(18),
         openSections: ['Share Your Details', 'Wedding party entrance', 'Toasts', 'Ceremony songs', 'Must plays'],
@@ -60,25 +60,25 @@ function buildGigs(): Gig[] {
     {
       id: 'g5', couple: 'Nora & Jules', type: 'Wedding', date: dayOffset(15), start: '4:30 pm', end: '10:30 pm',
       venue: 'Hillcrest Reserve', djId: null, booked: ['Luxe Experience'],
-      clientTotalCents: 320000, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 320000, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: { progress: 0.77, status: 'active', questionsAnswered: 72, questionsTotal: 93, lastUpdated: daysAgoIso(0), openSections: ['Toasts'], timeline: sampleTimeline },
     },
     {
       id: 'g6', couple: 'Iris & Ben', type: 'Wedding', date: dayOffset(16), start: '4:00 pm', end: '11:00 pm',
       venue: 'The Overlook', couplePhone: '(555) 010-0206', djId: 'dj-ari', booked: ['Elevated Experience', 'Hybrid Fusion (DJ + Musician)', 'Photobooth'],
-      clientTotalCents: 619600, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 619600, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: { progress: 0.1, status: 'active', questionsAnswered: 10, questionsTotal: 101, lastUpdated: daysAgoIso(45), openSections: ['First dance', 'Parent dances', 'Wedding party intros', 'Ceremony details', 'Cocktail and dinner music'], timeline: [] },
     },
     {
       id: 'g7', couple: 'Ella & Jonah', type: 'Wedding', date: dayOffset(23), start: '4:00 pm', end: '11:00 pm',
       venue: 'Peach Hill Estate', djId: 'dj-rae', booked: ['Celebration Experience', 'Ceremony Violin', 'Hybrid Fusion (DJ + Musician)'],
-      clientTotalCents: 599500, balanceDueCents: 150000, paymentStatus: 'partial', djPayCents: null,
+      billing: { clientTotalCents: 599500, balanceDueCents: 150000, paymentStatus: 'partial' }, djPayCents: null,
       vibo: { progress: 0.69, status: 'active', questionsAnswered: 69, questionsTotal: 100, lastUpdated: daysAgoIso(6), openSections: ['Mother-son dance', 'Unity ceremony'], timeline: sampleTimeline },
     },
     {
       id: 'g8', couple: 'Zoe & Liam', type: 'Wedding', date: dayOffset(30), start: '4:00 pm', end: '9:30 pm',
       venue: 'The Loft on Fifth', couplePhone: '(555) 010-0208', djId: 'dj-ari', booked: ['Venue Uplighting', 'Velvet Drift', 'Signature Spark'],
-      clientTotalCents: 410000, balanceDueCents: 0, paymentStatus: 'paid', djPayCents: null,
+      billing: { clientTotalCents: 410000, balanceDueCents: 0, paymentStatus: 'paid' }, djPayCents: null,
       vibo: { progress: 0.11, status: 'pending', questionsAnswered: 9, questionsTotal: 83, lastUpdated: daysAgoIso(2), openSections: ['The Details', 'Your Vendor Dream Team', 'Wedding party intros', 'Parent dances'], timeline: sampleTimeline },
     },
   ];

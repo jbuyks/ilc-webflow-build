@@ -4,7 +4,7 @@ export const config = {
   tools: [
     { name: 'HoneyBook', note: 'Bookings, contracts, payments', url: 'https://www.honeybook.com/app' },
     { name: 'Vibo', note: 'Couples’ music and timelines', url: 'https://app.vibodj.com' },
-    { name: 'BP Pro', note: 'Run sheets and your schedule', url: '' },
+    { name: 'BeatPilot', note: 'Run sheets, crew and your schedule', url: 'https://planner.beatpilot.ai' },
     { name: 'Zoom', note: 'Planning calls and consults', url: 'https://zoom.us' },
   ],
   sendToCouples: [

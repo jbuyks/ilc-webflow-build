@@ -27,6 +27,9 @@ export function isoToday(now = new Date()): string {
 
 // Moments that happen at the end of the night; an AM time on one is almost always a typo.
 const LATE_MOMENTS = /exit|last dance|end of night|send.?off/i;
+// Packages that need a live musician on the team, and the roles that count.
+const MUSICIAN_PACKAGES = /hybrid fusion|live music|violin|sax/i;
+const MUSICIAN_ROLES = /drum|sax|violin|guitar|key|piano|musician|vocal|percussion/i;
 
 export function flagsFor(gig: Gig, today: string): Flag[] {
   const days = daysUntil(gig.date, today);
@@ -36,10 +39,13 @@ export function flagsFor(gig: Gig, today: string): Flag[] {
     flags.push({ gigId: gig.id, severity, label, detail });
 
   if (!gig.start && days <= 14) {
-    add(days <= 3 ? 'urgent' : 'warn', 'Times missing', 'No start or end time in HoneyBook.');
+    add(days <= 3 ? 'urgent' : 'warn', 'Times missing', 'No start time saved for this gig.');
   }
   if (!gig.djId) {
-    add('warn', 'No DJ assigned', 'The HoneyBook booking has no DJ line item.');
+    add('warn', 'No DJ assigned', 'Nobody is on the BeatPilot team as DJ for this gig.');
+  }
+  if (gig.booked.some((b) => MUSICIAN_PACKAGES.test(b)) && !gig.crew.some((c) => c.role !== 'DJ' && MUSICIAN_ROLES.test(c.role)) && days <= 45) {
+    add(days <= 14 ? 'urgent' : 'warn', 'No musician assigned', 'They booked live music, but no musician is on the BeatPilot team.');
   }
   if (gig.billing && gig.billing.balanceDueCents > 0 && days <= 14) {
     add('urgent', 'Balance due', `${money(gig.billing.balanceDueCents)} still owed.`);

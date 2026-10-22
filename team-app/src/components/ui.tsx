@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import type { Billing, Gig } from '../data';
+import type { Billing, Gig, Meeting } from '../data';
 import { flagsFor, type Flag } from '../data/flags';
 import { useApp } from '../store';
 
@@ -133,4 +133,25 @@ export function textLink(gig: Gig, djName: string): string | null {
 function listJoin(items: string[]): string {
   if (items.length < 2) return items.join('');
   return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
+/** A call with its time and a Join button when there's a Zoom link. */
+export function MeetingRow({ meeting }: { meeting: Meeting }) {
+  const start = new Date(meeting.start);
+  const live = start.getTime() - Date.now() < 10 * 60 * 1000;
+  const when = start.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return (
+    <div className="card">
+      <div className="between">
+        <b style={{ fontSize: 15 }}>{meeting.title}</b>
+        {meeting.gigId && <Link to={`/gigs/${meeting.gigId}`} style={{ fontSize: 12, fontWeight: 700 }}>Gig</Link>}
+      </div>
+      <span className="sub">{when}</span>
+      {meeting.joinUrl && (
+        <a className={`btn ${live ? 'pink' : 'solid'}`} style={{ alignSelf: 'flex-start' }} href={meeting.joinUrl} target="_blank" rel="noreferrer">
+          {live ? 'Join Zoom now' : 'Join Zoom'}
+        </a>
+      )}
+    </div>
+  );
 }

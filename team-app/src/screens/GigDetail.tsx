@@ -40,7 +40,27 @@ export function GigDetail() {
         <div className="kv"><dt>Venue</dt><dd>{gig.venue}{gig.address && <><br />{gig.address}</>}<br /><a href={mapUrl} target="_blank" rel="noreferrer"><b>Open in Maps</b></a></dd></div>
         <div className="kv"><dt>Couple</dt><dd>{gig.couplePhone ? <a href={`tel:${gig.couplePhone}`}>{gig.couplePhone}</a> : <span className="sub">No phone on file</span>}</dd></div>
         <div className="kv"><dt>DJ</dt><dd>{dj ? dj.name : <span className="chip warn">No DJ assigned</span>}</dd></div>
+        {gig.travel?.map((t) => (
+          <div key={t.label} className="kv"><dt>Travel</dt><dd>{t.label}{t.address && <><br /><span className="sub">{t.address}</span></>}</dd></div>
+        ))}
       </dl>
+
+      <section className="card">
+        <h2 className="eyebrow">Crew</h2>
+        {gig.crew.length === 0 && <span className="sub">Nobody assigned in BeatPilot yet.</span>}
+        {gig.crew.map((c) => {
+          const m = team.find((t) => t.id === c.memberId);
+          return (
+            <div key={c.memberId + c.role} className="between" style={{ fontSize: 14 }}>
+              <span><b>{c.memberId === me?.id ? 'You' : m?.name ?? 'Unknown'}</b> · {c.role}</span>
+              {m?.phone && c.memberId !== me?.id && <a href={`tel:${m.phone}`}>Call</a>}
+            </div>
+          );
+        })}
+        {gig.beatpilotUrl && (
+          <a className="btn" style={{ alignSelf: 'flex-start' }} href={gig.beatpilotUrl} target="_blank" rel="noreferrer">Run sheet in BeatPilot</a>
+        )}
+      </section>
 
       <section className="card">
         <h2 className="eyebrow">What they booked</h2>

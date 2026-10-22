@@ -1,13 +1,38 @@
 // Shapes the app works with. Each source (sample data, a local snapshot, or the
 // live HoneyBook + Vibo sync) has to produce these.
 
+/** 'dj' covers anyone on the team (DJs, musicians, crew); 'owner' adds the Team tab and client money. */
 export type Role = 'dj' | 'owner';
 
 export interface TeamMember {
   id: string;
   name: string;
+  /** What they can see in the app. */
   role: Role;
+  /** Their job on a gig, from BeatPilot: DJ, Drummer, Saxophone, Setup Crew… */
+  title: string;
   phone?: string;
+  email?: string;
+}
+
+/** Someone working a gig, from the BeatPilot event team. */
+export interface CrewSlot {
+  memberId: string;
+  /** Role on this gig, e.g. "DJ" or "Drummer". */
+  role: string;
+}
+
+/** A call on someone's calendar, e.g. a planning call with a Zoom link. */
+export interface Meeting {
+  id: string;
+  memberId: string;
+  title: string;
+  /** ISO timestamps */
+  start: string;
+  end: string;
+  joinUrl?: string;
+  /** Set when the call is about a specific gig. */
+  gigId?: string;
 }
 
 export type PaymentStatus = 'paid' | 'partial' | 'overdue' | 'unpaid';
@@ -50,6 +75,12 @@ export interface Gig {
   couplePhone?: string;
   /** Null when the booking has no DJ assigned. */
   djId: string | null;
+  /** Everyone working the gig, DJ included, from BeatPilot. */
+  crew: CrewSlot[];
+  /** Hotel or travel for this gig, from the DJ's calendar. */
+  travel?: { label: string; address?: string }[];
+  /** Run sheet and full event in BeatPilot. */
+  beatpilotUrl?: string;
   /** Packages and enhancements booked, from the HoneyBook line items. */
   booked: string[];
   /**
@@ -77,6 +108,7 @@ export interface DataSource {
   team(): Promise<TeamMember[]>;
   gigs(): Promise<Gig[]>;
   timeOff(): Promise<TimeOffRequest[]>;
+  meetings(): Promise<Meeting[]>;
   requestTimeOff(req: Omit<TimeOffRequest, 'id' | 'status' | 'createdAt'>): Promise<TimeOffRequest>;
   decideTimeOff(id: string, status: 'approved' | 'declined'): Promise<void>;
 }

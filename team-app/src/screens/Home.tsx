@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import { flagsFor, relativeDay, shortDate } from '../data/flags';
-import { Layout, timeRange } from '../components/ui';
-import { useApp, useMyGigs } from '../store';
+import { Layout, MeetingRow, timeRange } from '../components/ui';
+import { useApp, useMyGigs, useMyMeetings } from '../store';
 import { daysUntil } from '../data/flags';
 
 export function Home() {
   const { me, today } = useApp();
   const mine = useMyGigs();
+  const calls = useMyMeetings().slice(0, 2);
   const next = mine[0];
   const week = mine.filter((g) => daysUntil(g.date, today) <= 7);
   const alerts = mine
@@ -44,6 +45,13 @@ export function Home() {
               <span><b>{gig.couple}</b> ({shortDate(gig.date)}): {flag.detail}</span>
             </Link>
           ))}
+        </section>
+      )}
+
+      {calls.length > 0 && (
+        <section className="stack">
+          <h2 className="eyebrow">Coming up</h2>
+          {calls.map((m) => <MeetingRow key={m.id} meeting={m} />)}
         </section>
       )}
 

@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import { daysUntil, flagsFor, relativeDay, shortDate } from '../data/flags';
-import { FlagChips, Layout, ViboBar, textLink } from '../components/ui';
-import { useApp, useMyGigs } from '../store';
+import { FlagChips, Layout, MeetingRow, ViboBar, textLink } from '../components/ui';
+import { useApp, useMyGigs, useMyMeetings } from '../store';
 
 export function Planning() {
   const { me, today } = useApp();
+  const calls = useMyMeetings();
   const soon = useMyGigs().filter((g) => daysUntil(g.date, today) <= 45);
   const link = config.planningLink && me ? config.planningLink.replace('{name}', me.name.toLowerCase()) : '';
   const [copied, setCopied] = useState(false);
@@ -34,6 +35,12 @@ export function Planning() {
         ) : (
           <span className="sub">The office hasn’t set up booking links yet.</span>
         )}
+      </section>
+
+      <section className="stack">
+        <h2 className="eyebrow">Your calls</h2>
+        {calls.length === 0 && <p className="empty">No calls on your calendar.</p>}
+        {calls.map((m) => <MeetingRow key={m.id} meeting={m} />)}
       </section>
 
       <section className="stack">

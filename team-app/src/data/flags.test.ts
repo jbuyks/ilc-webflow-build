@@ -4,7 +4,7 @@ import type { Gig } from './types';
 
 const base: Gig = {
   id: 'x', couple: 'A & B', type: 'Wedding', date: '2026-10-31', start: '5:00 pm', end: '10:00 pm',
-  venue: 'Hall', djId: 'dj1', booked: ['Luxe Experience'], djPayCents: null,
+  venue: 'Hall', djId: 'dj1', crew: [{ memberId: 'dj1', role: 'DJ' }], booked: ['Luxe Experience'], djPayCents: null,
   billing: { clientTotalCents: 300000, balanceDueCents: 0, paymentStatus: 'paid' },
   vibo: { progress: 0.9, status: 'active', questionsAnswered: 90, questionsTotal: 100, lastUpdated: '2026-10-20T00:00:00Z', openSections: [], timeline: [] },
 };
@@ -29,7 +29,14 @@ describe('flagsFor', () => {
   });
 
   it('flags an unassigned booking', () => {
-    expect(labels({ djId: null })).toEqual(['warn:No DJ assigned']);
+    expect(labels({ djId: null, crew: [] })).toEqual(['warn:No DJ assigned']);
+  });
+
+  it('flags live music booked with no musician on the team', () => {
+    const booked = ['Celebration Experience', 'Hybrid Fusion (DJ + Musician)'];
+    expect(labels({ booked, date: '2026-11-14' })).toEqual(['warn:No musician assigned']);
+    expect(labels({ booked, date: '2026-10-30' })).toEqual(['urgent:No musician assigned']);
+    expect(labels({ booked, crew: [{ memberId: 'dj1', role: 'DJ' }, { memberId: 'm1', role: 'Drummer' }] })).toEqual([]);
   });
 
   it('flags low Vibo progress inside 30 days, urgent inside a week', () => {

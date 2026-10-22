@@ -1,0 +1,7 @@
+node_modules
+dist
+# Real client data never goes in git
+src/data/local/*
+!src/data/local/.gitkeep
+.env*
+*.tsbuildinfo

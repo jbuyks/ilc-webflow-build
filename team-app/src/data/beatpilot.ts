@@ -48,6 +48,17 @@ export function clockLabel(time: string | null): string | null {
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
+/**
+ * The event's Messages tab in BeatPilot: client texts, emails and portal
+ * messages in one thread. BeatPilot only shows the tab to staff given the
+ * "manage client messages" permission.
+ */
+export function messagesUrl(eventUrl: string): string {
+  const url = new URL(eventUrl);
+  url.searchParams.set('tab', 'messages');
+  return url.toString();
+}
+
 export function mapStaff(staff: BpStaff[], ownerIds: string[]): TeamMember[] {
   return staff
     .filter((s) => s.last_name || s.first_name.toLowerCase() !== 'info') // shared inbox accounts aren't people

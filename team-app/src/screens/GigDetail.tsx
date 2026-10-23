@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { checklistTemplate } from '../config';
+import { messagesUrl } from '../data/beatpilot';
 import { daysUntil, flagsFor, longDate, money, relativeDay, shortDate } from '../data/flags';
 import { FlagChips, Layout, ViboBar, paymentLabel, textLink } from '../components/ui';
 import { useApp } from '../store';
@@ -58,7 +59,10 @@ export function GigDetail() {
           );
         })}
         {gig.beatpilotUrl && (
-          <a className="btn" style={{ alignSelf: 'flex-start' }} href={gig.beatpilotUrl} target="_blank" rel="noreferrer">Run sheet in BeatPilot</a>
+          <div className="row">
+            <a className="btn" href={gig.beatpilotUrl} target="_blank" rel="noreferrer">Run sheet in BeatPilot</a>
+            <a className="btn" href={messagesUrl(gig.beatpilotUrl)} target="_blank" rel="noreferrer">Client messages</a>
+          </div>
         )}
       </section>
 

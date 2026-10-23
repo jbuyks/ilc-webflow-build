@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clockLabel, crewFor, duplicateAssignments, mapEvent, mapStaff, roleLabel, type BpAssignment } from './beatpilot';
+import { clockLabel, crewFor, duplicateAssignments, mapEvent, mapStaff, messagesUrl, roleLabel, type BpAssignment } from './beatpilot';
 import { joinUrl, meetingsFrom, travelFor, type CalEvent } from './calendar';
 
 // Shapes mirror what BeatPilot and Google Calendar return; the values are made up.
@@ -17,6 +17,10 @@ describe('BeatPilot', () => {
     expect(roleLabel('custom_saxaphone')).toBe('Saxophone');
     expect(roleLabel('custom_drummer')).toBe('Drummer');
     expect(roleLabel('Setup Crew')).toBe('Setup Crew');
+  });
+
+  it('links to the event\'s Messages tab', () => {
+    expect(messagesUrl('https://planner.beatpilot.ai/events/e1')).toBe('https://planner.beatpilot.ai/events/e1?tab=messages');
   });
 
   it('formats 24-hour times', () => {

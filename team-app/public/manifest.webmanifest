@@ -1,0 +1,9 @@
+{
+  "name": "Ife Luxe Team",
+  "short_name": "Ife Luxe",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFEFE6",
+  "theme_color": "#141010",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,0 +1,114 @@
+// Shapes the app works with. Each source (sample data, a local snapshot, or the
+// live HoneyBook + Vibo sync) has to produce these.
+
+/** 'dj' covers anyone on the team (DJs, musicians, crew); 'owner' adds the Team tab and client money. */
+export type Role = 'dj' | 'owner';
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  /** What they can see in the app. */
+  role: Role;
+  /** Their job on a gig, from BeatPilot: DJ, Drummer, Saxophone, Setup Crew… */
+  title: string;
+  phone?: string;
+  email?: string;
+}
+
+/** Someone working a gig, from the BeatPilot event team. */
+export interface CrewSlot {
+  memberId: string;
+  /** Role on this gig, e.g. "DJ" or "Drummer". */
+  role: string;
+}
+
+/** A call on someone's calendar, e.g. a planning call with a Zoom link. */
+export interface Meeting {
+  id: string;
+  memberId: string;
+  title: string;
+  /** ISO timestamps */
+  start: string;
+  end: string;
+  joinUrl?: string;
+  /** Set when the call is about a specific gig. */
+  gigId?: string;
+}
+
+export type PaymentStatus = 'paid' | 'partial' | 'overdue' | 'unpaid';
+
+export interface Billing {
+  clientTotalCents: number;
+  balanceDueCents: number;
+  paymentStatus: PaymentStatus;
+}
+
+/** Planning progress, read from Vibo. */
+export interface ViboStatus {
+  /** 0 to 1 */
+  progress: number;
+  /** 'pending' means the couple hasn't accepted the invite yet. */
+  status: 'active' | 'locked' | 'pending';
+  questionsAnswered: number;
+  questionsTotal: number;
+  /** ISO timestamp of the couple's last change. */
+  lastUpdated: string;
+  /** Couple-facing sections with unanswered questions, most important first. */
+  openSections: string[];
+  /** Timeline entries, as Vibo stores them ("05:00 pm"). */
+  timeline: { name: string; time: string }[];
+}
+
+/** One booked event, joined from HoneyBook (booking, money) and Vibo (planning). */
+export interface Gig {
+  id: string;
+  couple: string;
+  type: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** "4:30 pm", or null when HoneyBook has no time. */
+  start: string | null;
+  end: string | null;
+  venue: string;
+  address?: string;
+  /** Best number to text the couple, from HoneyBook. */
+  couplePhone?: string;
+  /** Null when the booking has no DJ assigned. */
+  djId: string | null;
+  /** Everyone working the gig, DJ included, from BeatPilot. */
+  crew: CrewSlot[];
+  /** Hotel or travel for this gig, from the DJ's calendar. */
+  travel?: { label: string; address?: string }[];
+  /** Run sheet and full event in BeatPilot. */
+  beatpilotUrl?: string;
+  /** Packages and enhancements booked, from the HoneyBook line items. */
+  booked: string[];
+  /**
+   * What the client pays. Owner-only: the app removes it for DJs, and the live
+   * backend must never send it to a DJ's device.
+   */
+  billing?: Billing;
+  vibo: ViboStatus | null;
+  /** What the DJ is paid for this gig, in cents. Null until pay rules are set. */
+  djPayCents: number | null;
+}
+
+export interface TimeOffRequest {
+  id: string;
+  djId: string;
+  from: string;
+  to: string;
+  note: string;
+  status: 'pending' | 'approved' | 'declined';
+  createdAt: string;
+}
+
+export interface DataSource {
+  label: string;
+  team(): Promise<TeamMember[]>;
+  gigs(): Promise<Gig[]>;
+  timeOff(): Promise<TimeOffRequest[]>;
+  meetings(): Promise<Meeting[]>;
+  requestTimeOff(req: Omit<TimeOffRequest, 'id' | 'status' | 'createdAt'>): Promise<TimeOffRequest>;
+  decideTimeOff(id: string, status: 'approved' | 'declined'): Promise<void>;
+}
